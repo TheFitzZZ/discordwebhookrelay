@@ -2,7 +2,7 @@
 
 # Configuration
 REGISTRY="192.168.0.4:5001"
-PROJECT_NAME="ecarchargelogger"
+PROJECT_NAME="discordwebhookrelay"
 VERSION="${1:-latest}"
 
 # Colors for output
@@ -36,7 +36,7 @@ show_insecure_registry_help() {
 }
 
 echo -e "${GREEN}================================${NC}"
-echo -e "${GREEN}eCarChargeLogger Build & Push${NC}"
+echo -e "${GREEN}Discord Webhook Relay Build & Push${NC}"
 echo -e "${GREEN}================================${NC}"
 echo ""
 
@@ -65,42 +65,23 @@ else
 fi
 echo ""
 
-# Build and push backend
-echo -e "${GREEN}Building backend image...${NC}"
-DOCKER_BUILDKIT=0 sudo -E docker build -t ${REGISTRY}/${PROJECT_NAME}-backend:${VERSION} ./backend
+# Build and push image
+echo -e "${GREEN}Building image...${NC}"
+DOCKER_BUILDKIT=0 sudo -E docker build -t ${REGISTRY}/${PROJECT_NAME}:${VERSION} .
 if [ $? -ne 0 ]; then
-    echo -e "${RED}Backend build failed!${NC}"
+    echo -e "${RED}Build failed!${NC}"
     exit 1
 fi
 
-echo -e "${GREEN}Pushing backend image to registry...${NC}"
-if ! sudo docker push ${REGISTRY}/${PROJECT_NAME}-backend:${VERSION}; then
-    echo -e "${RED}Backend push failed!${NC}"
-    if sudo docker push ${REGISTRY}/${PROJECT_NAME}-backend:${VERSION} 2>&1 | grep -q "server gave HTTP response to HTTPS client"; then
+echo -e "${GREEN}Pushing image to registry...${NC}"
+if ! sudo docker push ${REGISTRY}/${PROJECT_NAME}:${VERSION}; then
+    echo -e "${RED}Push failed!${NC}"
+    if sudo docker push ${REGISTRY}/${PROJECT_NAME}:${VERSION} 2>&1 | grep -q "server gave HTTP response to HTTPS client"; then
         show_insecure_registry_help
     fi
     exit 1
 fi
-echo -e "${GREEN}✓ Backend image pushed successfully${NC}"
-echo ""
-
-# Build and push frontend  
-echo -e "${GREEN}Building frontend image (this may take a few minutes)...${NC}"
-DOCKER_BUILDKIT=0 sudo -E docker build --network=host -t ${REGISTRY}/${PROJECT_NAME}-frontend:${VERSION} ./frontend
-if [ $? -ne 0 ]; then
-    echo -e "${RED}Frontend build failed!${NC}"
-    exit 1
-fi
-
-echo -e "${GREEN}Pushing frontend image to registry...${NC}"
-if ! sudo docker push ${REGISTRY}/${PROJECT_NAME}-frontend:${VERSION}; then
-    echo -e "${RED}Frontend push failed!${NC}"
-    if sudo docker push ${REGISTRY}/${PROJECT_NAME}-frontend:${VERSION} 2>&1 | grep -q "server gave HTTP response to HTTPS client"; then
-        show_insecure_registry_help
-    fi
-    exit 1
-fi
-echo -e "${GREEN}✓ Frontend image pushed successfully${NC}"
+echo -e "${GREEN}✓ Image pushed successfully${NC}"
 echo ""
 
 # Summary
@@ -108,11 +89,9 @@ echo -e "${GREEN}================================${NC}"
 echo -e "${GREEN}Build and Push Complete!${NC}"
 echo -e "${GREEN}================================${NC}"
 echo ""
-echo "Images pushed:"
-echo "  - ${REGISTRY}/${PROJECT_NAME}-backend:${VERSION}"
-echo "  - ${REGISTRY}/${PROJECT_NAME}-frontend:${VERSION}"
+echo "Image pushed:"
+echo "  - ${REGISTRY}/${PROJECT_NAME}:${VERSION}"
 echo ""
-echo "To pull and run these images on another machine:"
-echo "  sudo docker pull ${REGISTRY}/${PROJECT_NAME}-backend:${VERSION}"
-echo "  sudo docker pull ${REGISTRY}/${PROJECT_NAME}-frontend:${VERSION}"
+echo "To pull and run this image on another machine:"
+echo "  sudo docker pull ${REGISTRY}/${PROJECT_NAME}:${VERSION}"
 echo ""
